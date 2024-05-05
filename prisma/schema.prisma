@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String      @id @default(cuid())
+  firstName       String
+  lastName        String?
+  email           String      @unique
+  profileImageURL String?
+  password        String?
+  salt            String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  tweets          Tweet[]
+  fellowerings    Fellowers[] @relation("fellowing")
+  fellowers       Fellowers[] @relation("fellower")
+}
+
+model Tweet {
+  id             String     @id @default(cuid())
+  content        String
+  imageURL       String?
+  author         User       @relation(fields: [authorId], references: [id])
+  authorId       String
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  commentsonpost Comments[]
+  likepost       LikePost[]
+}
+
+model Fellowers {
+  fellowing   User     @relation("fellowing", fields: [fellowingid], references: [id])
+  fellowingid String
+  fellower    User     @relation("fellower", fields: [fellowerId], references: [id])
+  fellowerId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@id([fellowingid, fellowerId])
+}
+
+model Comments {
+  id               String         @id @default(cuid())
+  content          String
+  imageURL         String?
+  commentsonpost   Tweet          @relation(fields: [commentsonpostId], references: [id])
+  commentsonpostId String
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  likedComment     LikePost[]
+  LikeComments     LikeComments[]
+}
+
+model LikeComments {
+  like      Comments @relation(fields: [likeId], references: [id])
+  likeId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([likeId])
+}
+
+model LikePost {
+  likepost   Tweet     @relation(fields: [likepostId], references: [id])
+  likepostId String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  Comments   Comments? @relation(fields: [commentsId], references: [id])
+  commentsId String?
+
+  @@id([likepostId])
+}
