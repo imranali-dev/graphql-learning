@@ -6,7 +6,6 @@ import { GraphqlContext } from "../types/interfaces";
 const queries = {
 
 };
-
 const mutations = {
   likePost: async (parent: any, { to }: { to: string }, ctx: GraphqlContext) => {
     if (!ctx.user || !ctx.user.id) {
@@ -58,7 +57,7 @@ const mutations = {
     if (!ctx.user || !ctx.user.id) {
       throw new Error("You are not authenticated");
     };
-  return CommentsonPost.editcomment(
+   CommentsonPost.editcomment(
       content,
       imageURL,
       id,

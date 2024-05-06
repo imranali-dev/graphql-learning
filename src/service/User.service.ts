@@ -2,6 +2,7 @@ import { prismaClient } from "../lib/db";
 const myPlaintextPassword = 's0/\/\P4$$w0rD';
 import bcrypt from 'bcryptjs';
 import JWTService from "./Token.service";
+import { CreateUserPayloadSchema } from "../helpers/ZodValidation";
 const saltRounds = 10;
 export interface CreateUserPayload {
     lastName?: string
@@ -35,13 +36,18 @@ class UserService {
         const compare = bcrypt.compare(password, hashedPassword);
         return compare;
     };
-
-
     public static async createNew(payload: CreateUserPayload): Promise<any> {
+
         const user = await UserService.finduniqueemail(payload.email);
         if (user) {
             throw new Error('User Already exist')
         };
+        const validatedPayload = CreateUserPayloadSchema.safeParse(payload);
+        if (!validatedPayload.success) {
+            const errors = validatedPayload.error.issues.map((issue) => issue.message); // Extract error messages
+            throw new Error(`Validation failed: ${errors.join(', ')}`); // Informative error message
+          }
+        
         const hashedPassword = await UserService.hashing(payload.password);
         const createNewone = await prismaClient.user.create({
             data: {
